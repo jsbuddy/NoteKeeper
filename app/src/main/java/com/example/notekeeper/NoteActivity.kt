@@ -5,14 +5,14 @@ import androidx.appcompat.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.ArrayAdapter
-import kotlinx.android.synthetic.main.content_main.*
+import kotlinx.android.synthetic.main.content_note.*
 
-class MainActivity : AppCompatActivity() {
+class NoteActivity : AppCompatActivity() {
     private var position = POSITION_NOT_SET
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        setContentView(R.layout.activity_note)
         setSupportActionBar(findViewById(R.id.toolbar))
 
         val adapterCourses = ArrayAdapter<CourseInfo>(
