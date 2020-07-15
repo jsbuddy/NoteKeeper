@@ -11,4 +11,14 @@
     <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
     <string name="title_activity_note_list">NoteListActivity</string>
     <string name="edit_note">Edit Note</string>
+    <string name="title_activity_items">ItemsActivity</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="nav_header_title">Android Studio</string>
+    <string name="nav_header_subtitle">android.studio@android.com</string>
+    <string name="nav_header_desc">Navigation header</string>
+
+    <string name="menu_notes">Notes</string>
+    <string name="menu_courses">Courses</string>
+    <string name="menu_exit">Exit</string>
 </resources>
