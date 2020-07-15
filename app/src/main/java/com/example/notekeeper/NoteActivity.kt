@@ -14,6 +14,7 @@ class NoteActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_note)
         setSupportActionBar(findViewById(R.id.toolbar))
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         val adapterCourses = ArrayAdapter<CourseInfo>(
             this,
@@ -32,6 +33,11 @@ class NoteActivity : AppCompatActivity() {
             DataManager.notes.add(NoteInfo())
             position = DataManager.notes.lastIndex
         }
+    }
+
+    override fun onSupportNavigateUp(): Boolean {
+        onBackPressed()
+        return true
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
