@@ -20,12 +20,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
         <activity
             android:name=".NoteActivity"
             android:label="@string/edit_note"
+            android:parentActivityName=".ItemsActivity"
             android:theme="@style/AppTheme.NoActionBar" />
-
         <activity
             android:name=".SettingsActivity"
             android:label="Settings"

@@ -70,6 +70,14 @@ class NoteActivity : AppCompatActivity() {
                 moveNext()
                 true
             }
+            R.id.action_reminder -> {
+                NoteReminderNotification.notify(
+                    this,
+                    DataManager.notes[position],
+                    position
+                )
+                true
+            }
             else -> super.onOptionsItemSelected(item)
         }
     }

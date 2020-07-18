@@ -21,4 +21,7 @@
     <string name="menu_notes">Notes</string>
     <string name="menu_courses">Courses</string>
     <string name="menu_exit">Exit</string>
+    <string name="action_reminder">Reminder</string>
+    <string name="appwidget_text">EXAMPLE</string>
+    <string name="add_widget">Add widget</string>
 </resources>

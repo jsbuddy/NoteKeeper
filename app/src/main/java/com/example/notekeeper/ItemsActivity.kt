@@ -1,6 +1,10 @@
 package com.example.notekeeper
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
@@ -42,6 +46,7 @@ class ItemsActivity : AppCompatActivity() {
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
+        createNotificationChannel()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -70,6 +75,24 @@ class ItemsActivity : AppCompatActivity() {
             drawer_layout.closeDrawer(GravityCompat.START)
         } else {
             super.onBackPressed()
+        }
+    }
+
+    private fun createNotificationChannel() {
+        // Create the NotificationChannel, but only on API 26+ because
+        // the NotificationChannel class is new and not in the support library
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val name = NoteReminderNotification.CHANNEL_NAME
+            val id = NoteReminderNotification.CHANNEL_ID
+            val descriptionText = NoteReminderNotification.CHANNEL_DESCRIPTION
+            val importance = NotificationManager.IMPORTANCE_DEFAULT
+            val channel = NotificationChannel(id, name, importance).apply {
+                description = descriptionText
+            }
+            // Register the channel with the system
+            val notificationManager: NotificationManager =
+                getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            notificationManager.createNotificationChannel(channel)
         }
     }
 }
