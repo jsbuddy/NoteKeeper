@@ -14,7 +14,6 @@ import com.example.notekeeper.R
 import kotlinx.android.synthetic.main.fragment_notes.*
 
 class NotesFragment : Fragment() {
-
     private lateinit var notesViewModel: NotesViewModel
 
     override fun onCreateView(
@@ -24,11 +23,17 @@ class NotesFragment : Fragment() {
     ): View? {
         notesViewModel =
             ViewModelProviders.of(this).get(NotesViewModel::class.java)
+
         val root = inflater.inflate(R.layout.fragment_notes, container, false)
+        displayNotes(root)
+
+        return root
+    }
+
+    private fun displayNotes(root: View) {
         val listItems = root.findViewById<RecyclerView>(R.id.listItems)
         listItems.layoutManager = LinearLayoutManager(requireContext())
         listItems.adapter = NoteRecyclerAdapter(requireContext(), DataManager.notes)
-        return root
     }
 
     override fun onResume() {

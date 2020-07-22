@@ -1,13 +1,13 @@
 package com.example.notekeeper
 
+import android.database.Cursor
+import android.util.Log
+import com.example.notekeeper.NoteKeeperDatabaseContract.CourseInfoEntry
+import com.example.notekeeper.NoteKeeperDatabaseContract.NoteInfoEntry
+
 object DataManager {
     val courses = HashMap<String, CourseInfo>()
     val notes = ArrayList<NoteInfo>()
-
-    init {
-        initializeCourses()
-        initializeNotes()
-    }
 
     fun addNote(course: CourseInfo, title: String, text: String): Int {
         val note = NoteInfo(course, title, text)
@@ -23,76 +23,78 @@ object DataManager {
         return null
     }
 
-    private fun initializeCourses() {
-        var course = CourseInfo("android_intents", "Android Programming with Intents")
-        courses[course.id] = course
+    fun loadFromDatabase(openHelper: NoteKeeperOpenHelper) {
+        val db = openHelper.readableDatabase
 
-        course = CourseInfo(id = "android_async", title = "Android Async Programming and Services")
-        courses[course.id] = course
+        val courseColumns: Array<String> = arrayOf(
+            CourseInfoEntry.COLUMN_COURSE_ID,
+            CourseInfoEntry.COLUMN_COURSE_TITLE
+        )
+        val courseCursor =
+            db.query(
+                CourseInfoEntry.TABLE_NAME,
+                courseColumns,
+                null,
+                null,
+                null,
+                null,
+                CourseInfoEntry.COLUMN_COURSE_TITLE
+            )
+        loadCoursesFromDatabase(courseCursor);
 
-        course = CourseInfo(title = "Java Fundamentals: The Java Language", id = "java_lang")
-        courses[course.id] = course
+        val noteColumns: Array<String> = arrayOf(
+            NoteInfoEntry.COLUMN_NOTE_TITLE,
+            NoteInfoEntry.COLUMN_NOTE_TEXT,
+            NoteInfoEntry.COLUMN_COURSE_ID
+        )
+        val noteCursor =
+            db.query(
+                NoteInfoEntry.TABLE_NAME,
+                noteColumns,
+                null,
+                null,
+                null,
+                null,
+                NoteInfoEntry.COLUMN_COURSE_ID
+            )
+        loadNotesFromDatabase(noteCursor)
 
-        course = CourseInfo("java_core", "Java Fundamentals: The Core Platform")
-        courses[course.id] = course
+        db.close();
     }
 
-    fun initializeNotes() {
+    private fun loadNotesFromDatabase(cursor: Cursor) {
+        notes.clear()
+        val noteTitlePos = cursor.getColumnIndex(NoteInfoEntry.COLUMN_NOTE_TITLE)
+        val noteTextPos = cursor.getColumnIndex(NoteInfoEntry.COLUMN_NOTE_TEXT)
+        val courseIdPos = cursor.getColumnIndex(NoteInfoEntry.COLUMN_COURSE_ID)
 
-        var course = courses["android_intents"]!!
-        var note = NoteInfo(
-            course,
-            "Dynamic intent resolution",
-            "Wow, intents allow components to be resolved at runtime"
-        )
-        notes.add(note)
-        note = NoteInfo(
-            course,
-            "Delegating intents",
-            "PendingIntents are powerful; they delegate much more than just a component invocation"
-        )
-        notes.add(note)
+        while (cursor.moveToNext()) {
+            val title = cursor.getString(noteTitlePos)
+            val text = cursor.getString(noteTextPos)
+            val courseId = cursor.getString(courseIdPos)
 
-        course = courses["android_async"]!!
-        note = NoteInfo(
-            course,
-            "Service default threads",
-            "Did you know that by default an Android Service will tie up the UI thread?"
-        )
-        notes.add(note)
-        note = NoteInfo(
-            course,
-            "Long running operations",
-            "Foreground Services can be tied to a notification icon"
-        )
-        notes.add(note)
+            val course = courses[courseId]
+            val note = NoteInfo(course, title, text)
+            notes.add(note)
+        }
 
-        course = courses["java_lang"]!!
-        note = NoteInfo(
-            course,
-            "Parameters",
-            "Leverage variable-length parameter lists"
-        )
-        notes.add(note)
-        note = NoteInfo(
-            course,
-            "Anonymous classes",
-            "Anonymous classes simplify implementing one-use types"
-        )
-        notes.add(note)
+        cursor.close()
+    }
 
-        course = courses["java_core"]!!
-        note = NoteInfo(
-            course,
-            "Compiler options",
-            "The -jar option isn't compatible with with the -cp option"
-        )
-        notes.add(note)
-        note = NoteInfo(
-            course,
-            "Serialization",
-            "Remember to include SerialVersionUID to assure version compatibility"
-        )
-        notes.add(note)
+    private fun loadCoursesFromDatabase(cursor: Cursor) {
+        courses.clear()
+        val courseIdPos = cursor.getColumnIndex(CourseInfoEntry.COLUMN_COURSE_ID)
+        val courseTitlePos = cursor.getColumnIndex(CourseInfoEntry.COLUMN_COURSE_TITLE)
+
+        while (cursor.moveToNext()) {
+            val id = cursor.getString(courseIdPos)
+            val title = cursor.getString(courseTitlePos)
+            val course = CourseInfo(id, title)
+            courses[id] = course
+        }
+
+        Log.d("DataManager", courses.toString())
+
+        cursor.close()
     }
 }
