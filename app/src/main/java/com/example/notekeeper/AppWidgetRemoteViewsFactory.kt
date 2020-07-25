@@ -22,7 +22,7 @@ class AppWidgetRemoteViewsFactory(val context: Context) : RemoteViewsService.Rem
         rv.setTextViewText(R.id.note_title, DataManager.notes[p0].title)
 
         val extras = Bundle()
-        extras.putInt(NOTE_POSITION, p0)
+        extras.putInt(NOTE_ID, p0)
         val fillInIntent = Intent()
         fillInIntent.putExtras(extras)
         rv.setOnClickFillInIntent(R.id.widget_item, fillInIntent)

@@ -9,11 +9,11 @@ object DataManager {
     val courses = HashMap<String, CourseInfo>()
     val notes = ArrayList<NoteInfo>()
 
-    fun addNote(course: CourseInfo, title: String, text: String): Int {
-        val note = NoteInfo(course, title, text)
-        notes.add(note)
-        return notes.lastIndex
-    }
+//    fun addNote(course: CourseInfo, title: String, text: String): Int {
+//        val note = NoteInfo(course, title, text)
+//        notes.add(note)
+//        return notes.lastIndex
+//    }
 
     fun findNote(course: CourseInfo, title: String, text: String): NoteInfo? {
         for (note in notes) {
@@ -40,12 +40,13 @@ object DataManager {
                 null,
                 CourseInfoEntry.COLUMN_COURSE_TITLE
             )
-        loadCoursesFromDatabase(courseCursor);
+        loadCoursesFromDatabase(courseCursor)
 
         val noteColumns: Array<String> = arrayOf(
             NoteInfoEntry.COLUMN_NOTE_TITLE,
             NoteInfoEntry.COLUMN_NOTE_TEXT,
-            NoteInfoEntry.COLUMN_COURSE_ID
+            NoteInfoEntry.COLUMN_COURSE_ID,
+            NoteInfoEntry.COLUMN_ID
         )
         val noteCursor =
             db.query(
@@ -55,11 +56,11 @@ object DataManager {
                 null,
                 null,
                 null,
-                NoteInfoEntry.COLUMN_COURSE_ID
+                NoteInfoEntry.COLUMN_ID
             )
         loadNotesFromDatabase(noteCursor)
 
-        db.close();
+        db.close()
     }
 
     private fun loadNotesFromDatabase(cursor: Cursor) {
@@ -67,14 +68,16 @@ object DataManager {
         val noteTitlePos = cursor.getColumnIndex(NoteInfoEntry.COLUMN_NOTE_TITLE)
         val noteTextPos = cursor.getColumnIndex(NoteInfoEntry.COLUMN_NOTE_TEXT)
         val courseIdPos = cursor.getColumnIndex(NoteInfoEntry.COLUMN_COURSE_ID)
+        val noteIdPos = cursor.getColumnIndex(NoteInfoEntry.COLUMN_ID)
 
         while (cursor.moveToNext()) {
             val title = cursor.getString(noteTitlePos)
             val text = cursor.getString(noteTextPos)
             val courseId = cursor.getString(courseIdPos)
+            val id = cursor.getInt(noteIdPos)
 
             val course = courses[courseId]
-            val note = NoteInfo(course, title, text)
+            val note = NoteInfo(id, course, title, text)
             notes.add(note)
         }
 

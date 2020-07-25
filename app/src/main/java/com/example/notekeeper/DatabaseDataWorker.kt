@@ -28,12 +28,12 @@ class DatabaseDataWorker(private val mDb: SQLiteDatabase) {
             "Service default threads",
             "Did you know that by default an Android Service will tie up the UI thread?"
         )
+        insertNote("java_lang", "Parameters", "Leverage variable-length parameter lists?")
         insertNote(
             "android_async",
             "Long running operations",
             "Foreground Services can be tied to a notification icon"
         )
-        insertNote("java_lang", "Parameters", "Leverage variable-length parameter lists?")
         insertNote(
             "java_lang",
             "Anonymous classes",
@@ -55,8 +55,7 @@ class DatabaseDataWorker(private val mDb: SQLiteDatabase) {
         val values = ContentValues()
         values.put(NoteKeeperDatabaseContract.CourseInfoEntry.COLUMN_COURSE_ID, courseId)
         values.put(NoteKeeperDatabaseContract.CourseInfoEntry.COLUMN_COURSE_TITLE, title)
-        val newRowId =
-            mDb.insert(NoteKeeperDatabaseContract.CourseInfoEntry.TABLE_NAME, null, values)
+        mDb.insert(NoteKeeperDatabaseContract.CourseInfoEntry.TABLE_NAME, null, values)
     }
 
     private fun insertNote(
@@ -68,8 +67,7 @@ class DatabaseDataWorker(private val mDb: SQLiteDatabase) {
         values.put(NoteKeeperDatabaseContract.NoteInfoEntry.COLUMN_COURSE_ID, courseId)
         values.put(NoteKeeperDatabaseContract.NoteInfoEntry.COLUMN_NOTE_TITLE, title)
         values.put(NoteKeeperDatabaseContract.NoteInfoEntry.COLUMN_NOTE_TEXT, text)
-        val newRowId =
-            mDb.insert(NoteKeeperDatabaseContract.NoteInfoEntry.TABLE_NAME, null, values)
+        mDb.insert(NoteKeeperDatabaseContract.NoteInfoEntry.TABLE_NAME, null, values)
     }
 
 }

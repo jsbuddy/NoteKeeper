@@ -2,6 +2,7 @@ package com.example.notekeeper
 
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -16,12 +17,14 @@ class NoteRecyclerAdapter(private val context: Context, private val notes: List<
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val textCourse = itemView.findViewById<TextView?>(R.id.textCourse)
         val textTitle = itemView.findViewById<TextView?>(R.id.textTitle)
-        var notePosition = 0
+        var id: Int? = null
+
 
         init {
             itemView.setOnClickListener {
+                Log.d("NoteRecyclerAdapter", "$textTitle - ${id.toString()}")
                 val intent = Intent(context, NoteActivity::class.java)
-                intent.putExtra(NOTE_POSITION, notePosition)
+                intent.putExtra(NOTE_ID, id)
                 context.startActivity(intent)
             }
         }
@@ -38,6 +41,6 @@ class NoteRecyclerAdapter(private val context: Context, private val notes: List<
         val note = notes[position]
         holder.textCourse?.text = note.course?.title
         holder.textTitle?.text = note.title
-        holder.notePosition = position
+        holder.id = note.id
     }
 }

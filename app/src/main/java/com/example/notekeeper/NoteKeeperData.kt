@@ -7,7 +7,8 @@ data class CourseInfo(val id: String, val title: String) {
 };
 
 data class NoteInfo(
+    var id: Int? = null,
     var course: CourseInfo? = null,
     var title: String? = null,
     var text: String? = null
-);
+)

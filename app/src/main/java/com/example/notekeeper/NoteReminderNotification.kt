@@ -16,7 +16,7 @@ object NoteReminderNotification {
 
     fun notify(context: Context, note: NoteInfo, notePosition: Int) {
         val intent = Intent(context, NoteActivity::class.java)
-        intent.putExtra(NOTE_POSITION, notePosition)
+        intent.putExtra(NOTE_ID, notePosition)
 
         val pendingIntent = TaskStackBuilder.create(context).addNextIntentWithParentStack(intent)
             .getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT)
