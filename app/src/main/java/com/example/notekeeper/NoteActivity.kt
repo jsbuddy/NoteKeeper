@@ -1,8 +1,8 @@
 package com.example.notekeeper
 
+import android.content.ContentValues
 import android.database.Cursor
 import android.os.Bundle
-import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
@@ -143,17 +143,37 @@ class NoteActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor> 
     }
 
     override fun onPause() {
+        saveNote()
         super.onPause()
-        Log.d("NoteActivity", "onPause called")
-//        saveNote()
     }
 
     private fun saveNote() {
-        val note = DataManager.notes.find { note -> note.id == noteId }
-        note?.text = textNoteText.text.toString()
-        note?.title = textNoteTitle.text.toString()
-        note?.course = spinnerCourses.selectedItem as CourseInfo
+        val text = textNoteText.text.toString()
+        val title = textNoteTitle.text.toString()
+        val courseId = selectedCourseId()
+        saveNoteToDatabase(courseId, title, text)
         NoteKeeperAppWidget.sendRefreshBroadcast(this)
+    }
+
+    private fun selectedCourseId(): String {
+        val position = spinnerCourses.selectedItemPosition
+        val cursor = adapterCourses.cursor
+        cursor.moveToPosition(position)
+        val idPos = cursor.getColumnIndex(CourseInfoEntry.COLUMN_COURSE_ID)
+        return cursor.getString(idPos)
+    }
+
+    private fun saveNoteToDatabase(courseId: String, title: String, text: String) {
+        val selection = "${NoteInfoEntry.COLUMN_ID} = ?"
+        val selectionArgs = arrayOf(noteId.toString())
+
+        val values = ContentValues()
+        values.put(NoteInfoEntry.COLUMN_COURSE_ID, courseId)
+        values.put(NoteInfoEntry.COLUMN_NOTE_TITLE, title)
+        values.put(NoteInfoEntry.COLUMN_NOTE_TEXT, text)
+
+        val db = openHelper.writableDatabase
+        db.update(NoteInfoEntry.TABLE_NAME, values, selection, selectionArgs)
     }
 
     override fun onDestroy() {
