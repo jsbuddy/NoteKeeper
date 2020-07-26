@@ -6,7 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProviders
+import androidx.lifecycle.ViewModelProvider
 import androidx.loader.app.LoaderManager
 import androidx.loader.content.CursorLoader
 import androidx.loader.content.Loader
@@ -25,13 +25,11 @@ class NotesFragment : Fragment(), LoaderManager.LoaderCallbacks<Cursor> {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        notesViewModel =
-            ViewModelProviders.of(this).get(NotesViewModel::class.java)
-
-        openHelper = NoteKeeperOpenHelper(requireContext())
-
+        notesViewModel = ViewModelProvider(this).get(NotesViewModel::class.java)
         val root = inflater.inflate(R.layout.fragment_notes, container, false)
         initialize(root)
+
+        openHelper = NoteKeeperOpenHelper(requireContext())
 
         return root
     }
