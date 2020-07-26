@@ -3,11 +3,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="com.example.notekeeper.NoteActivity">
     <item
-        android:id="@+id/action_settings"
-        android:orderInCategory="101"
-        android:title="@string/action_settings"
-        app:showAsAction="never" />
-    <item
         android:id="@+id/action_reminder"
         android:icon="@drawable/ic_baseline_notifications_24"
         android:title="@string/action_reminder"
