@@ -3,12 +3,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="com.example.notekeeper.NoteActivity">
     <item
-        android:id="@+id/action_next"
-        android:icon="@drawable/ic_baseline_arrow_forward_24"
-        android:orderInCategory="100"
-        android:title="@string/next"
-        app:showAsAction="ifRoom|withText" />
-    <item
         android:id="@+id/action_settings"
         android:orderInCategory="101"
         android:title="@string/action_settings"

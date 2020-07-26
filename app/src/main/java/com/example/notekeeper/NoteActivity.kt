@@ -120,10 +120,6 @@ class NoteActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor> 
         // as you specify a parent activity in AndroidManifest.xml.
         return when (item.itemId) {
             R.id.action_settings -> true
-            R.id.action_next -> {
-                moveNext()
-                true
-            }
             R.id.action_reminder -> {
                 NoteReminderNotification.notify(
                     this,
@@ -134,21 +130,6 @@ class NoteActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor> 
             }
             else -> super.onOptionsItemSelected(item)
         }
-    }
-
-    private fun moveNext() {
-//        ++noteId
-//        loadNoteData()
-//        invalidateOptionsMenu()
-    }
-
-    override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
-        if (noteId >= DataManager.notes.lastIndex) {
-            val menuItem = menu?.findItem(R.id.action_next)
-            menuItem?.isEnabled = false
-            menuItem?.icon = getDrawable(R.drawable.ic_baseline_arrow_forward_24_transparent)
-        }
-        return super.onPrepareOptionsMenu(menu)
     }
 
     override fun onPause() {
