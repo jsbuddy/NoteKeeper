@@ -3,11 +3,12 @@ package com.example.notekeeper
 import android.content.ContentValues
 import android.database.Cursor
 import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.SimpleCursorAdapter
+import androidx.appcompat.app.AppCompatActivity
 import androidx.loader.app.LoaderManager
+import androidx.loader.content.AsyncTaskLoader
 import androidx.loader.content.CursorLoader
 import androidx.loader.content.Loader
 import com.example.notekeeper.NoteKeeperDatabaseContract.CourseInfoEntry
@@ -119,7 +120,11 @@ class NoteActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor> 
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         return when (item.itemId) {
-            R.id.action_settings -> true
+            R.id.action_cancel -> {
+                deleteNoteFromDatabase()
+                finish()
+                return true
+            }
             R.id.action_reminder -> {
                 NoteReminderNotification.notify(
                     this,
@@ -130,6 +135,21 @@ class NoteActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor> 
             }
             else -> super.onOptionsItemSelected(item)
         }
+    }
+
+    private fun deleteNoteFromDatabase() {
+        val selection = "${NoteInfoEntry.COLUMN_ID} = ?"
+        val selectionArgs = arrayOf(noteId.toString())
+
+        val task = object : AsyncTaskLoader<Any>(this) {
+            override fun loadInBackground(): Any? {
+                val db = openHelper.writableDatabase
+                db.delete(NoteInfoEntry.TABLE_NAME, selection, selectionArgs)
+                return null
+            }
+        }
+
+        task.loadInBackground()
     }
 
     override fun onPause() {

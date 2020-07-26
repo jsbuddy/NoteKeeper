@@ -7,4 +7,9 @@
         android:icon="@drawable/ic_baseline_notifications_24"
         android:title="@string/action_reminder"
         app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_cancel"
+        android:icon="@drawable/ic_baseline_close_24"
+        android:title="Cancel"
+        app:showAsAction="ifRoom|withText" />
 </menu>
