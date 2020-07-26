@@ -66,8 +66,15 @@ class NoteActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor> 
         values.put(NoteInfoEntry.COLUMN_NOTE_TITLE, "")
         values.put(NoteInfoEntry.COLUMN_NOTE_TEXT, "")
 
-        val db = openHelper.writableDatabase
-        noteId = db.insert(NoteInfoEntry.TABLE_NAME, null, values).toInt()
+        val task = object : AsyncTaskLoader<Any>(this) {
+            override fun loadInBackground(): Any? {
+                val db = openHelper.writableDatabase
+                noteId = db.insert(NoteInfoEntry.TABLE_NAME, null, values).toInt()
+                return null
+            }
+        }
+
+        task.loadInBackground()
     }
 
     private fun displayNote() {
