@@ -1,18 +1,21 @@
 package com.example.notekeeper.ui.notes
 
+import android.database.Cursor
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProviders
+import androidx.loader.app.LoaderManager
+import androidx.loader.content.CursorLoader
+import androidx.loader.content.Loader
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.notekeeper.*
 import com.example.notekeeper.NoteKeeperDatabaseContract.NoteInfoEntry
-import kotlinx.android.synthetic.main.fragment_notes.*
 
-class NotesFragment : Fragment() {
+class NotesFragment : Fragment(), LoaderManager.LoaderCallbacks<Cursor> {
     private lateinit var notesViewModel: NotesViewModel
     private lateinit var openHelper: NoteKeeperOpenHelper
     private lateinit var noteRecyclerAdapter: NoteRecyclerAdapter
@@ -46,32 +49,59 @@ class NotesFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        loadNotes()
-        listItems.adapter?.notifyDataSetChanged()
-    }
-
-    private fun loadNotes() {
-        val db = openHelper.readableDatabase
-        val noteColumns: Array<String> = arrayOf(
-            NoteInfoEntry.COLUMN_NOTE_TITLE,
-            NoteInfoEntry.COLUMN_COURSE_ID,
-            NoteInfoEntry.COLUMN_ID
-        )
-        val noteCursor =
-            db.query(
-                NoteInfoEntry.TABLE_NAME,
-                noteColumns,
-                null,
-                null,
-                null,
-                null,
-                "${NoteInfoEntry.COLUMN_COURSE_ID}, ${NoteInfoEntry.COLUMN_NOTE_TITLE}"
-            )
-        noteRecyclerAdapter.changeCursor(noteCursor)
+        LoaderManager.getInstance(this).restartLoader(LOADER_NOTES, null, this)
     }
 
     override fun onDestroy() {
         openHelper.close()
         super.onDestroy()
+    }
+
+    override fun onCreateLoader(id: Int, args: Bundle?): Loader<Cursor> {
+        var loader: CursorLoader? = null
+        when (id) {
+            LOADER_NOTES -> loader = createLoaderNotes()
+        }
+        return loader as Loader<Cursor>
+    }
+
+    private fun createLoaderNotes(): CursorLoader {
+        return object : CursorLoader(requireContext()) {
+            override fun loadInBackground(): Cursor? {
+                val db = openHelper.readableDatabase
+                val noteColumns: Array<String> = arrayOf(
+                    NoteInfoEntry.COLUMN_NOTE_TITLE,
+                    NoteInfoEntry.COLUMN_COURSE_ID,
+                    NoteInfoEntry.COLUMN_ID
+                )
+                return db.query(
+                    NoteInfoEntry.TABLE_NAME,
+                    noteColumns,
+                    null,
+                    null,
+                    null,
+                    null,
+                    "${NoteInfoEntry.COLUMN_COURSE_ID}, ${NoteInfoEntry.COLUMN_NOTE_TITLE}"
+                )
+            }
+        }
+    }
+
+    override fun onLoadFinished(loader: Loader<Cursor>, data: Cursor?) {
+        when (loader.id) {
+            LOADER_NOTES -> {
+                noteRecyclerAdapter.changeCursor(data!!)
+            }
+        }
+    }
+
+    override fun onLoaderReset(loader: Loader<Cursor>) {
+        when (loader.id) {
+            LOADER_NOTES -> noteRecyclerAdapter.changeCursor(null)
+        }
+    }
+
+    companion object {
+        private const val LOADER_NOTES = 0
     }
 }

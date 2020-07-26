@@ -17,7 +17,6 @@ class NoteRecyclerAdapter(private val context: Context, private var cursor: Curs
     private val inflater = LayoutInflater.from(context)
     private var courseIdPos: Int = 0
     private var titlePos: Int = 0
-    private var textPos: Int = 0
     private var idPos: Int = 0
 
     init {
@@ -28,12 +27,11 @@ class NoteRecyclerAdapter(private val context: Context, private var cursor: Curs
         if (cursor == null) return
         courseIdPos = cursor!!.getColumnIndex(NoteInfoEntry.COLUMN_COURSE_ID)
         titlePos = cursor!!.getColumnIndex(NoteInfoEntry.COLUMN_NOTE_TITLE)
-        textPos = cursor!!.getColumnIndex(NoteInfoEntry.COLUMN_NOTE_TEXT)
         idPos = cursor!!.getColumnIndex(NoteInfoEntry.COLUMN_ID)
     }
 
-    fun changeCursor(_cursor: Cursor) {
-        if (cursor !== null) cursor!!.close()
+    fun changeCursor(_cursor: Cursor?) {
+//        cursor?.close() TODO: Possible memory leakage
         cursor = _cursor
         populateColumnPositions()
         notifyDataSetChanged()

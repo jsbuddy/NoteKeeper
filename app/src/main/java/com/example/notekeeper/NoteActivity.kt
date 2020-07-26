@@ -1,20 +1,26 @@
 package com.example.notekeeper
 
+import android.database.Cursor
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
-import android.widget.ArrayAdapter
 import android.widget.SimpleCursorAdapter
+import androidx.loader.app.LoaderManager
+import androidx.loader.content.CursorLoader
+import androidx.loader.content.Loader
 import com.example.notekeeper.NoteKeeperDatabaseContract.CourseInfoEntry
 import com.example.notekeeper.NoteKeeperDatabaseContract.NoteInfoEntry
 import kotlinx.android.synthetic.main.content_note.*
 
-class NoteActivity : AppCompatActivity() {
-    private var id = NOTE_ID_NOT_SET
+class NoteActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor> {
+    private var noteId = NOTE_ID_NOT_SET
     private lateinit var openHelper: NoteKeeperOpenHelper
     private lateinit var adapterCourses: SimpleCursorAdapter
+    private lateinit var noteCursor: Cursor
+    private var courseQueryFinished = false
+    private var notesQueryFinished = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,79 +41,35 @@ class NoteActivity : AppCompatActivity() {
         adapterCourses.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         spinnerCourses.adapter = adapterCourses
 
-        loadCourseData()
+        LoaderManager.getInstance(this).initLoader(LOADER_COURSES, null, this)
 
         initializeNote(savedInstanceState)
     }
 
-    private fun loadCourseData() {
-        val db = openHelper.readableDatabase
-        val columns = arrayOf(
-            CourseInfoEntry.COLUMN_ID,
-            CourseInfoEntry.COLUMN_COURSE_ID,
-            CourseInfoEntry.COLUMN_COURSE_TITLE
-        )
-        val cursor = db.query(
-            CourseInfoEntry.TABLE_NAME,
-            columns,
-            null,
-            null,
-            null,
-            null,
-            CourseInfoEntry.COLUMN_COURSE_TITLE
-        )
-        adapterCourses.changeCursor(cursor)
-        db.close()
-    }
-
     private fun initializeNote(savedInstanceState: Bundle?) {
-        id = savedInstanceState?.getInt(NOTE_ID, NOTE_ID_NOT_SET) ?: intent.getIntExtra(
+        noteId = savedInstanceState?.getInt(NOTE_ID, NOTE_ID_NOT_SET) ?: intent.getIntExtra(
             NOTE_ID,
             NOTE_ID_NOT_SET
         )
 
-        if (id != NOTE_ID_NOT_SET) {
-            loadNoteData()
+        if (noteId != NOTE_ID_NOT_SET) {
+            LoaderManager.getInstance(this).initLoader(LOADER_NOTES, null, this)
         } else {
             DataManager.notes.add(NoteInfo())
-            id = DataManager.notes.lastIndex
+            noteId = DataManager.notes.lastIndex
         }
     }
 
-    private fun loadNoteData() {
-        val db = openHelper.readableDatabase
+    private fun displayNote() {
+        val courseIdPos = noteCursor.getColumnIndex(NoteInfoEntry.COLUMN_COURSE_ID)
+        val titlePos = noteCursor.getColumnIndex(NoteInfoEntry.COLUMN_NOTE_TITLE)
+        val textPos = noteCursor.getColumnIndex(NoteInfoEntry.COLUMN_NOTE_TEXT)
+        noteCursor.moveToNext()
 
-        val selection = "${NoteInfoEntry.COLUMN_ID} = ?"
-        val selectionArgs = arrayOf(id.toString())
-        val columns = arrayOf(
-            NoteInfoEntry.COLUMN_COURSE_ID,
-            NoteInfoEntry.COLUMN_NOTE_TITLE,
-            NoteInfoEntry.COLUMN_NOTE_TEXT
-        )
-        val cursor = db.query(
-            NoteInfoEntry.TABLE_NAME,
-            columns,
-            selection,
-            selectionArgs,
-            null, null, null
-        )
-        val courseIdPos = cursor.getColumnIndex(NoteInfoEntry.COLUMN_COURSE_ID)
-        val titlePos = cursor.getColumnIndex(NoteInfoEntry.COLUMN_NOTE_TITLE)
-        val textPos = cursor.getColumnIndex(NoteInfoEntry.COLUMN_NOTE_TEXT)
-        cursor.moveToNext()
+        textNoteTitle.setText(noteCursor.getString(titlePos))
+        textNoteText.setText(noteCursor.getString(textPos))
 
-        val courseId = cursor.getString(courseIdPos)
-        val title = cursor.getString(titlePos)
-        val text = cursor.getString(textPos)
-        displayNote(courseId, title, text)
-        cursor.close()
-    }
-
-    private fun displayNote(courseId: String, title: String, text: String) {
-        textNoteTitle.setText(title)
-        textNoteText.setText(text)
-
-        val courseIndex = getIndexOfCourse(courseId)
+        val courseIndex = getIndexOfCourse(noteCursor.getString(courseIdPos))
         spinnerCourses.setSelection(courseIndex)
     }
 
@@ -133,7 +95,7 @@ class NoteActivity : AppCompatActivity() {
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        outState.putInt(NOTE_ID, id)
+        outState.putInt(NOTE_ID, noteId)
     }
 
 
@@ -156,8 +118,8 @@ class NoteActivity : AppCompatActivity() {
             R.id.action_reminder -> {
                 NoteReminderNotification.notify(
                     this,
-                    DataManager.notes[id],
-                    id
+                    DataManager.notes[noteId],
+                    noteId
                 )
                 true
             }
@@ -166,13 +128,13 @@ class NoteActivity : AppCompatActivity() {
     }
 
     private fun moveNext() {
-        ++id
-        loadNoteData()
-        invalidateOptionsMenu()
+//        ++noteId
+//        loadNoteData()
+//        invalidateOptionsMenu()
     }
 
     override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
-        if (id >= DataManager.notes.lastIndex) {
+        if (noteId >= DataManager.notes.lastIndex) {
             val menuItem = menu?.findItem(R.id.action_next)
             menuItem?.isEnabled = false
             menuItem?.icon = getDrawable(R.drawable.ic_baseline_arrow_forward_24_transparent)
@@ -187,7 +149,7 @@ class NoteActivity : AppCompatActivity() {
     }
 
     private fun saveNote() {
-        val note = DataManager.notes.find { note -> note.id == id }
+        val note = DataManager.notes.find { note -> note.id == noteId }
         note?.text = textNoteText.text.toString()
         note?.title = textNoteTitle.text.toString()
         note?.course = spinnerCourses.selectedItem as CourseInfo
@@ -197,5 +159,90 @@ class NoteActivity : AppCompatActivity() {
     override fun onDestroy() {
         openHelper.close()
         super.onDestroy()
+    }
+
+    override fun onCreateLoader(id: Int, args: Bundle?): Loader<Cursor> {
+        var loader: CursorLoader? = null
+        when (id) {
+            LOADER_NOTES -> loader = createLoaderNotes()
+            LOADER_COURSES -> loader = createLoaderCourses()
+        }
+        return loader as Loader<Cursor>
+    }
+
+    private fun createLoaderCourses(): CursorLoader? {
+        courseQueryFinished = false
+        return object : CursorLoader(this) {
+            override fun loadInBackground(): Cursor? {
+                val db = openHelper.readableDatabase
+                val columns = arrayOf(
+                    CourseInfoEntry.COLUMN_ID,
+                    CourseInfoEntry.COLUMN_COURSE_ID,
+                    CourseInfoEntry.COLUMN_COURSE_TITLE
+                )
+                return db.query(
+                    CourseInfoEntry.TABLE_NAME,
+                    columns, null, null, null, null,
+                    CourseInfoEntry.COLUMN_COURSE_TITLE
+                )
+            }
+        }
+    }
+
+    private fun createLoaderNotes(): CursorLoader {
+        notesQueryFinished = false
+        return object : CursorLoader(this) {
+            override fun loadInBackground(): Cursor? {
+                val db = openHelper.readableDatabase
+
+                val selection = "${NoteInfoEntry.COLUMN_ID} = ?"
+                val selectionArgs = arrayOf(noteId.toString())
+                val columns = arrayOf(
+                    NoteInfoEntry.COLUMN_COURSE_ID,
+                    NoteInfoEntry.COLUMN_NOTE_TITLE,
+                    NoteInfoEntry.COLUMN_NOTE_TEXT
+                )
+                return db.query(
+                    NoteInfoEntry.TABLE_NAME,
+                    columns,
+                    selection,
+                    selectionArgs,
+                    null, null, null
+                )
+            }
+        }
+    }
+
+    override fun onLoadFinished(loader: Loader<Cursor>, data: Cursor?) {
+        when (loader.id) {
+            LOADER_NOTES -> loadFinishedNotes(data)
+            LOADER_COURSES -> {
+                adapterCourses.changeCursor(data)
+                courseQueryFinished = true
+                displayNoteWhenQueriesFinished()
+            }
+        }
+    }
+
+    private fun loadFinishedNotes(cursor: Cursor?) {
+        this.noteCursor = cursor!!
+        notesQueryFinished = true
+        displayNoteWhenQueriesFinished()
+    }
+
+    private fun displayNoteWhenQueriesFinished() {
+        if (courseQueryFinished && notesQueryFinished) displayNote()
+    }
+
+    override fun onLoaderReset(loader: Loader<Cursor>) {
+        when (loader.id) {
+            LOADER_NOTES -> noteCursor.close()
+            LOADER_COURSES -> adapterCourses.changeCursor(null)
+        }
+    }
+
+    companion object {
+        private const val LOADER_NOTES = 0
+        private const val LOADER_COURSES = 1
     }
 }
