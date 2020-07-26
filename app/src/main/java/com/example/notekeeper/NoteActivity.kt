@@ -55,9 +55,18 @@ class NoteActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor> 
         if (noteId != NOTE_ID_NOT_SET) {
             LoaderManager.getInstance(this).initLoader(LOADER_NOTES, null, this)
         } else {
-            DataManager.notes.add(NoteInfo())
-            noteId = DataManager.notes.lastIndex
+            createNewNote()
         }
+    }
+
+    private fun createNewNote() {
+        val values = ContentValues()
+        values.put(NoteInfoEntry.COLUMN_COURSE_ID, "")
+        values.put(NoteInfoEntry.COLUMN_NOTE_TITLE, "")
+        values.put(NoteInfoEntry.COLUMN_NOTE_TEXT, "")
+
+        val db = openHelper.writableDatabase
+        noteId = db.insert(NoteInfoEntry.TABLE_NAME, null, values).toInt()
     }
 
     private fun displayNote() {
