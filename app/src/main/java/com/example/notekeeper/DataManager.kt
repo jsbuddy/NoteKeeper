@@ -56,7 +56,7 @@ object DataManager {
                 null,
                 null,
                 null,
-                NoteInfoEntry.COLUMN_ID
+                NoteInfoEntry.COLUMN_COURSE_ID
             )
         loadNotesFromDatabase(noteCursor)
 
