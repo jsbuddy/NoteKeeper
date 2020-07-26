@@ -13,6 +13,7 @@ import androidx.loader.content.Loader
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.notekeeper.*
+import com.example.notekeeper.NoteKeeperDatabaseContract.CourseInfoEntry
 import com.example.notekeeper.NoteKeeperDatabaseContract.NoteInfoEntry
 
 class NotesFragment : Fragment(), LoaderManager.LoaderCallbacks<Cursor> {
@@ -68,18 +69,21 @@ class NotesFragment : Fragment(), LoaderManager.LoaderCallbacks<Cursor> {
             override fun loadInBackground(): Cursor? {
                 val db = openHelper.readableDatabase
                 val noteColumns: Array<String> = arrayOf(
+                    NoteInfoEntry.getQName(NoteInfoEntry.COLUMN_ID),
                     NoteInfoEntry.COLUMN_NOTE_TITLE,
-                    NoteInfoEntry.COLUMN_COURSE_ID,
-                    NoteInfoEntry.COLUMN_ID
+                    CourseInfoEntry.COLUMN_COURSE_TITLE
                 )
+
+                val tableWithJoin = """
+                    ${NoteInfoEntry.TABLE_NAME} JOIN ${CourseInfoEntry.TABLE_NAME} ON
+                    ${NoteInfoEntry.getQName(NoteInfoEntry.COLUMN_COURSE_ID)} = 
+                    ${CourseInfoEntry.getQName(CourseInfoEntry.COLUMN_COURSE_ID)}
+                """.trimIndent()
+
                 return db.query(
-                    NoteInfoEntry.TABLE_NAME,
-                    noteColumns,
-                    null,
-                    null,
-                    null,
-                    null,
-                    "${NoteInfoEntry.COLUMN_COURSE_ID}, ${NoteInfoEntry.COLUMN_NOTE_TITLE}"
+                    tableWithJoin,
+                    noteColumns, null, null, null, null,
+                    "${CourseInfoEntry.COLUMN_COURSE_TITLE}, ${NoteInfoEntry.COLUMN_NOTE_TITLE}"
                 )
             }
         }
