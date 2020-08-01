@@ -18,7 +18,8 @@ object NoteReminderNotification {
         val intent = Intent(context, NoteActivity::class.java)
         intent.putExtra(NOTE_ID, notePosition)
 
-        val pendingIntent = TaskStackBuilder.create(context).addNextIntentWithParentStack(intent)
+        val pendingIntent = TaskStackBuilder.create(context)
+            .addNextIntentWithParentStack(intent)
             .getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT)
 
         val shareIntent = PendingIntent.getActivity(
@@ -41,12 +42,20 @@ object NoteReminderNotification {
             .setColor(ContextCompat.getColor(context, R.color.colorAccent))
             .setColorized(true)
             .setAutoCancel(true)
+            .addAction(
+                0, "View all notes", PendingIntent.getActivity(
+                    context,
+                    0,
+                    Intent(context, ItemsActivity::class.java),
+                    PendingIntent.FLAG_UPDATE_CURRENT
+                )
+            )
             .addAction(R.drawable.ic_baseline_share_24, "Share", shareIntent)
             .setStyle(
                 NotificationCompat.BigTextStyle()
                     .bigText(note.text)
                     .setBigContentTitle(note.title)
-                    .setSummaryText("Review reminder")
+                    .setSummaryText("Review note")
             )
 
         with(NotificationManagerCompat.from(context)) {
