@@ -12,9 +12,10 @@ import androidx.loader.content.CursorLoader
 import androidx.loader.content.Loader
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.notekeeper.*
-import com.example.notekeeper.NoteKeeperDatabaseContract.CourseInfoEntry
-import com.example.notekeeper.NoteKeeperDatabaseContract.NoteInfoEntry
+import com.example.notekeeper.NoteKeeperOpenHelper
+import com.example.notekeeper.NoteKeeperProviderContract.Notes
+import com.example.notekeeper.NoteRecyclerAdapter
+import com.example.notekeeper.R
 
 class NotesFragment : Fragment(), LoaderManager.LoaderCallbacks<Cursor> {
     private lateinit var notesViewModel: NotesViewModel
@@ -65,28 +66,22 @@ class NotesFragment : Fragment(), LoaderManager.LoaderCallbacks<Cursor> {
     }
 
     private fun createLoaderNotes(): CursorLoader {
-        return object : CursorLoader(requireContext()) {
-            override fun loadInBackground(): Cursor? {
-                val db = openHelper.readableDatabase
-                val noteColumns: Array<String> = arrayOf(
-                    NoteInfoEntry.getQName(NoteInfoEntry.COLUMN_ID),
-                    NoteInfoEntry.COLUMN_NOTE_TITLE,
-                    CourseInfoEntry.COLUMN_COURSE_TITLE
-                )
+        val noteColumns: Array<String> = arrayOf(
+            Notes.COLUMN_ID,
+            Notes.COLUMN_NOTE_TITLE,
+            Notes.COLUMN_COURSE_TITLE
+        )
+        val noteOrderBy =
+            "${Notes.COLUMN_COURSE_TITLE}, ${Notes.COLUMN_NOTE_TITLE}"
 
-                val tableWithJoin = """
-                    ${NoteInfoEntry.TABLE_NAME} JOIN ${CourseInfoEntry.TABLE_NAME} ON
-                    ${NoteInfoEntry.getQName(NoteInfoEntry.COLUMN_COURSE_ID)} = 
-                    ${CourseInfoEntry.getQName(CourseInfoEntry.COLUMN_COURSE_ID)}
-                """.trimIndent()
-
-                return db.query(
-                    tableWithJoin,
-                    noteColumns, null, null, null, null,
-                    "${CourseInfoEntry.COLUMN_COURSE_TITLE}, ${NoteInfoEntry.COLUMN_NOTE_TITLE}"
-                )
-            }
-        }
+        return CursorLoader(
+            requireContext(),
+            Notes.CONTENT_EXPANDED_URI,
+            noteColumns,
+            null,
+            null,
+            noteOrderBy
+        )
     }
 
     override fun onLoadFinished(loader: Loader<Cursor>, data: Cursor?) {

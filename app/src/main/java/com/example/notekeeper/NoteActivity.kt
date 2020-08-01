@@ -1,7 +1,9 @@
 package com.example.notekeeper
 
+import android.content.ContentUris
 import android.content.ContentValues
 import android.database.Cursor
+import android.net.Uri
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
@@ -13,6 +15,8 @@ import androidx.loader.content.CursorLoader
 import androidx.loader.content.Loader
 import com.example.notekeeper.NoteKeeperDatabaseContract.CourseInfoEntry
 import com.example.notekeeper.NoteKeeperDatabaseContract.NoteInfoEntry
+import com.example.notekeeper.NoteKeeperProviderContract.Courses
+import com.example.notekeeper.NoteKeeperProviderContract.Notes
 import kotlinx.android.synthetic.main.content_note.*
 
 class NoteActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor> {
@@ -22,6 +26,7 @@ class NoteActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor> 
     private lateinit var noteCursor: Cursor
     private var courseQueryFinished = false
     private var notesQueryFinished = false
+    private lateinit var noteUri: Uri
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -68,8 +73,7 @@ class NoteActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor> 
 
         val task = object : AsyncTaskLoader<Any>(this) {
             override fun loadInBackground(): Any? {
-                val db = openHelper.writableDatabase
-                noteId = db.insert(NoteInfoEntry.TABLE_NAME, null, values).toInt()
+                noteUri = contentResolver.insert(Notes.CONTENT_URI, values)!!
                 return null
             }
         }
@@ -115,7 +119,6 @@ class NoteActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor> 
         outState.putInt(NOTE_ID, noteId)
     }
 
-
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         // Inflate the menu; this adds items to the action bar if it is present.
         menuInflater.inflate(R.menu.menu_main, menu)
@@ -145,13 +148,9 @@ class NoteActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor> 
     }
 
     private fun deleteNoteFromDatabase() {
-        val selection = "${NoteInfoEntry.COLUMN_ID} = ?"
-        val selectionArgs = arrayOf(noteId.toString())
-
         val task = object : AsyncTaskLoader<Any>(this) {
             override fun loadInBackground(): Any? {
-                val db = openHelper.writableDatabase
-                db.delete(NoteInfoEntry.TABLE_NAME, selection, selectionArgs)
+                contentResolver.delete(noteUri, null, null)
                 return null
             }
         }
@@ -181,16 +180,12 @@ class NoteActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor> 
     }
 
     private fun saveNoteToDatabase(courseId: String, title: String, text: String) {
-        val selection = "${NoteInfoEntry.COLUMN_ID} = ?"
-        val selectionArgs = arrayOf(noteId.toString())
-
         val values = ContentValues()
         values.put(NoteInfoEntry.COLUMN_COURSE_ID, courseId)
         values.put(NoteInfoEntry.COLUMN_NOTE_TITLE, title)
         values.put(NoteInfoEntry.COLUMN_NOTE_TEXT, text)
 
-        val db = openHelper.writableDatabase
-        db.update(NoteInfoEntry.TABLE_NAME, values, selection, selectionArgs)
+        contentResolver.update(noteUri, values, null, null)
     }
 
     override fun onDestroy() {
@@ -209,45 +204,26 @@ class NoteActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor> 
 
     private fun createLoaderCourses(): CursorLoader? {
         courseQueryFinished = false
-        return object : CursorLoader(this) {
-            override fun loadInBackground(): Cursor? {
-                val db = openHelper.readableDatabase
-                val columns = arrayOf(
-                    CourseInfoEntry.COLUMN_ID,
-                    CourseInfoEntry.COLUMN_COURSE_ID,
-                    CourseInfoEntry.COLUMN_COURSE_TITLE
-                )
-                return db.query(
-                    CourseInfoEntry.TABLE_NAME,
-                    columns, null, null, null, null,
-                    CourseInfoEntry.COLUMN_COURSE_TITLE
-                )
-            }
-        }
+        val uri = Courses.CONTENT_URI
+        val columns = arrayOf(
+            Courses.COLUMN_ID,
+            Courses.COLUMN_COURSE_ID,
+            Courses.COLUMN_COURSE_TITLE
+        )
+        return CursorLoader(this, uri, columns, null, null, Courses.COLUMN_COURSE_TITLE)
     }
 
     private fun createLoaderNotes(): CursorLoader {
         notesQueryFinished = false
-        return object : CursorLoader(this) {
-            override fun loadInBackground(): Cursor? {
-                val db = openHelper.readableDatabase
+        val columns = arrayOf(
+            NoteInfoEntry.COLUMN_COURSE_ID,
+            NoteInfoEntry.COLUMN_NOTE_TITLE,
+            NoteInfoEntry.COLUMN_NOTE_TEXT
+        )
 
-                val selection = "${NoteInfoEntry.COLUMN_ID} = ?"
-                val selectionArgs = arrayOf(noteId.toString())
-                val columns = arrayOf(
-                    NoteInfoEntry.COLUMN_COURSE_ID,
-                    NoteInfoEntry.COLUMN_NOTE_TITLE,
-                    NoteInfoEntry.COLUMN_NOTE_TEXT
-                )
-                return db.query(
-                    NoteInfoEntry.TABLE_NAME,
-                    columns,
-                    selection,
-                    selectionArgs,
-                    null, null, null
-                )
-            }
-        }
+        noteUri = ContentUris.withAppendedId(Notes.CONTENT_URI, noteId.toLong())
+
+        return CursorLoader(this, noteUri, columns, null, null, null)
     }
 
     override fun onLoadFinished(loader: Loader<Cursor>, data: Cursor?) {
