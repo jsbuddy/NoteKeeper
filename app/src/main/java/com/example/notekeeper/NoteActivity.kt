@@ -20,6 +20,8 @@ import com.example.notekeeper.NoteKeeperProviderContract.Notes
 import kotlinx.android.synthetic.main.content_note.*
 
 class NoteActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor> {
+    private lateinit var noteText: String
+    private lateinit var noteTitle: String
     private var noteId = NOTE_ID_NOT_SET
     private lateinit var openHelper: NoteKeeperOpenHelper
     private lateinit var adapterCourses: SimpleCursorAdapter
@@ -87,8 +89,11 @@ class NoteActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor> 
         val textPos = noteCursor.getColumnIndex(NoteInfoEntry.COLUMN_NOTE_TEXT)
         noteCursor.moveToNext()
 
-        textNoteTitle.setText(noteCursor.getString(titlePos))
-        textNoteText.setText(noteCursor.getString(textPos))
+        noteTitle = noteCursor.getString(titlePos)
+        noteText = noteCursor.getString(textPos)
+
+        textNoteTitle.setText(noteTitle)
+        textNoteText.setText(noteText)
 
         val courseIndex = getIndexOfCourse(noteCursor.getString(courseIdPos))
         spinnerCourses.setSelection(courseIndex)
@@ -138,8 +143,9 @@ class NoteActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor> 
             R.id.action_reminder -> {
                 NoteReminderNotification.notify(
                     this,
-                    DataManager.notes[noteId],
-                    noteId
+                    noteId,
+                    noteText,
+                    noteTitle
                 )
                 true
             }

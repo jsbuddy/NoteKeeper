@@ -14,9 +14,9 @@ object NoteReminderNotification {
     const val CHANNEL_NAME = "Note Reminders"
     const val CHANNEL_DESCRIPTION = "N/A"
 
-    fun notify(context: Context, note: NoteInfo, notePosition: Int) {
+    fun notify(context: Context, noteId: Int, noteText: String, noteTitle: String) {
         val intent = Intent(context, NoteActivity::class.java)
-        intent.putExtra(NOTE_ID, notePosition)
+        intent.putExtra(NOTE_ID, noteId)
 
         val pendingIntent = TaskStackBuilder.create(context)
             .addNextIntentWithParentStack(intent)
@@ -27,7 +27,7 @@ object NoteReminderNotification {
             Intent.createChooser(
                 Intent(Intent.ACTION_SEND)
                     .setType("text/plain")
-                    .putExtra(Intent.EXTRA_TEXT, note.text), "Share Note Reminder"
+                    .putExtra(Intent.EXTRA_TEXT, noteText), "Share Note Reminder"
             ),
             PendingIntent.FLAG_UPDATE_CURRENT
         )
@@ -35,8 +35,8 @@ object NoteReminderNotification {
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
             .setDefaults(Notification.DEFAULT_ALL)
             .setSmallIcon(R.drawable.ic_baseline_assignment_24)
-            .setContentTitle(note.title)
-            .setContentText(note.text)
+            .setContentTitle(noteTitle)
+            .setContentText(noteText)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setContentIntent(pendingIntent)
             .setColor(ContextCompat.getColor(context, R.color.colorAccent))
@@ -53,13 +53,13 @@ object NoteReminderNotification {
             .addAction(R.drawable.ic_baseline_share_24, "Share", shareIntent)
             .setStyle(
                 NotificationCompat.BigTextStyle()
-                    .bigText(note.text)
-                    .setBigContentTitle(note.title)
+                    .bigText(noteText)
+                    .setBigContentTitle(noteTitle)
                     .setSummaryText("Review note")
             )
 
         with(NotificationManagerCompat.from(context)) {
-            notify(notePosition, builder.build())
+            notify(0, builder.build())
         }
     }
 }
