@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.os.StrictMode
 import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
@@ -32,6 +33,8 @@ class ItemsActivity : AppCompatActivity() {
         val toolbar: Toolbar = findViewById(R.id.toolbar)
         setSupportActionBar(toolbar)
 
+        enableStrictMode()
+
         openHelper = NoteKeeperOpenHelper(this)
         DataManager.loadFromDatabase(openHelper);
 
@@ -52,9 +55,14 @@ class ItemsActivity : AppCompatActivity() {
         createNotificationChannel()
     }
 
-    override fun onDestroy() {
-        openHelper.close()
-        super.onDestroy()
+    private fun enableStrictMode() {
+        if (BuildConfig.DEBUG) {
+            val policy = StrictMode.ThreadPolicy.Builder()
+                .detectAll()
+                .penaltyLog()
+                .build()
+            StrictMode.setThreadPolicy(policy)
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
