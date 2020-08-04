@@ -25,7 +25,6 @@ import kotlinx.android.synthetic.main.activity_items.*
 class ItemsActivity : AppCompatActivity() {
 
     private lateinit var appBarConfiguration: AppBarConfiguration
-    private lateinit var openHelper: NoteKeeperOpenHelper
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,9 +33,6 @@ class ItemsActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
 
         enableStrictMode()
-
-        openHelper = NoteKeeperOpenHelper(this)
-        DataManager.loadFromDatabase(openHelper);
 
         val fab: FloatingActionButton = findViewById(R.id.fab)
         fab.setOnClickListener {
