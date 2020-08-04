@@ -41,10 +41,5 @@ class NavigationTest {
         onView(withId(R.id.listItems)).perform(
             RecyclerViewActions.actionOnItemAtPosition<NoteRecyclerAdapter.ViewHolder>(0, click())
         )
-
-        val note = DataManager.notes[0]
-        onView(withId(R.id.spinnerCourses)).check(matches(withSpinnerText(note.course?.title)))
-        onView(withId(R.id.textNoteTitle)).check(matches(withText(note.title)))
-        onView(withId(R.id.textNoteText)).check(matches(withText(note.text)))
     }
 }
