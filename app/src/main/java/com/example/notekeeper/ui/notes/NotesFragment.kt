@@ -12,14 +12,12 @@ import androidx.loader.content.CursorLoader
 import androidx.loader.content.Loader
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.notekeeper.NoteKeeperOpenHelper
 import com.example.notekeeper.NoteKeeperProviderContract.Notes
 import com.example.notekeeper.NoteRecyclerAdapter
 import com.example.notekeeper.R
 
 class NotesFragment : Fragment(), LoaderManager.LoaderCallbacks<Cursor> {
     private lateinit var notesViewModel: NotesViewModel
-    private lateinit var openHelper: NoteKeeperOpenHelper
     private lateinit var noteRecyclerAdapter: NoteRecyclerAdapter
 
     override fun onCreateView(
@@ -29,9 +27,8 @@ class NotesFragment : Fragment(), LoaderManager.LoaderCallbacks<Cursor> {
     ): View? {
         notesViewModel = ViewModelProvider(this).get(NotesViewModel::class.java)
         val root = inflater.inflate(R.layout.fragment_notes, container, false)
-        initialize(root)
 
-        openHelper = NoteKeeperOpenHelper(requireContext())
+        initialize(root)
 
         return root
     }
@@ -52,17 +49,11 @@ class NotesFragment : Fragment(), LoaderManager.LoaderCallbacks<Cursor> {
         LoaderManager.getInstance(this).restartLoader(LOADER_NOTES, null, this)
     }
 
-    override fun onDestroy() {
-        openHelper.close()
-        super.onDestroy()
-    }
-
     override fun onCreateLoader(id: Int, args: Bundle?): Loader<Cursor> {
-        var loader: CursorLoader? = null
-        when (id) {
-            LOADER_NOTES -> loader = createLoaderNotes()
-        }
-        return loader as Loader<Cursor>
+        return when (id) {
+            LOADER_NOTES -> createLoaderNotes()
+            else -> null
+        } as Loader<Cursor>
     }
 
     private fun createLoaderNotes(): CursorLoader {

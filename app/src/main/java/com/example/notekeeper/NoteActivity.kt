@@ -25,7 +25,6 @@ class NoteActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor> 
     private lateinit var noteText: String
     private lateinit var noteTitle: String
     private var noteId = NOTE_ID_NOT_SET
-    private lateinit var openHelper: NoteKeeperOpenHelper
     private lateinit var adapterCourses: SimpleCursorAdapter
     private lateinit var noteCursor: Cursor
     private var courseQueryFinished = false
@@ -37,8 +36,6 @@ class NoteActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor> 
         setContentView(R.layout.activity_note)
         setSupportActionBar(findViewById(R.id.toolbar))
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-
-        openHelper = NoteKeeperOpenHelper(this)
 
         adapterCourses = SimpleCursorAdapter(
             this,
