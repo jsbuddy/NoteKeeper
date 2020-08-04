@@ -10,7 +10,6 @@ import android.view.MenuItem
 import android.widget.SimpleCursorAdapter
 import androidx.appcompat.app.AppCompatActivity
 import androidx.loader.app.LoaderManager
-import androidx.loader.content.AsyncTaskLoader
 import androidx.loader.content.CursorLoader
 import androidx.loader.content.Loader
 import com.example.notekeeper.NoteKeeperDatabaseContract.CourseInfoEntry
@@ -18,6 +17,9 @@ import com.example.notekeeper.NoteKeeperDatabaseContract.NoteInfoEntry
 import com.example.notekeeper.NoteKeeperProviderContract.Courses
 import com.example.notekeeper.NoteKeeperProviderContract.Notes
 import kotlinx.android.synthetic.main.content_note.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 class NoteActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor> {
     private lateinit var noteText: String
@@ -67,20 +69,16 @@ class NoteActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor> 
         }
     }
 
-    private fun createNewNote() {
+    private fun createNewNote() = runBlocking {
         val values = ContentValues()
         values.put(NoteInfoEntry.COLUMN_COURSE_ID, "")
         values.put(NoteInfoEntry.COLUMN_NOTE_TITLE, "")
         values.put(NoteInfoEntry.COLUMN_NOTE_TEXT, "")
 
-        val task = object : AsyncTaskLoader<Any>(this) {
-            override fun loadInBackground(): Any? {
-                noteUri = contentResolver.insert(Notes.CONTENT_URI, values)!!
-                return null
-            }
+        launch(Dispatchers.IO) {
+            noteUri = contentResolver.insert(Notes.CONTENT_URI, values)!!
         }
 
-        task.loadInBackground()
     }
 
     private fun displayNote() {
@@ -153,15 +151,10 @@ class NoteActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor> 
         }
     }
 
-    private fun deleteNoteFromDatabase() {
-        val task = object : AsyncTaskLoader<Any>(this) {
-            override fun loadInBackground(): Any? {
-                contentResolver.delete(noteUri, null, null)
-                return null
-            }
+    private fun deleteNoteFromDatabase() = runBlocking {
+        launch(Dispatchers.IO) {
+            contentResolver.delete(noteUri, null, null)
         }
-
-        task.loadInBackground()
     }
 
     override fun onPause() {
@@ -185,18 +178,15 @@ class NoteActivity : AppCompatActivity(), LoaderManager.LoaderCallbacks<Cursor> 
         return cursor.getString(idPos)
     }
 
-    private fun saveNoteToDatabase(courseId: String, title: String, text: String) {
+    private fun saveNoteToDatabase(courseId: String, title: String, text: String) = runBlocking {
         val values = ContentValues()
         values.put(NoteInfoEntry.COLUMN_COURSE_ID, courseId)
         values.put(NoteInfoEntry.COLUMN_NOTE_TITLE, title)
         values.put(NoteInfoEntry.COLUMN_NOTE_TEXT, text)
 
-        contentResolver.update(noteUri, values, null, null)
-    }
-
-    override fun onDestroy() {
-        openHelper.close()
-        super.onDestroy()
+        launch(Dispatchers.IO) {
+            contentResolver.update(noteUri, values, null, null)
+        }
     }
 
     override fun onCreateLoader(id: Int, args: Bundle?): Loader<Cursor> {
